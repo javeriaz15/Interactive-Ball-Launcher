@@ -1,0 +1,19 @@
+{
+  "name": "balllauncherfrontend",
+  "version": "1.0.0",
+  "description": "Frontend for Ball Launcher Simulator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ball",
+    "launcher",
+    "simulator"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^13.10.0"
+  }
+}

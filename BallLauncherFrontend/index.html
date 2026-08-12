@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ball Launcher Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px; /* Increased the width */
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid black;
+            margin-top: 10px;
+        }
+        #distanceOutput, #errorOutput {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            margin-bottom: 10px;
+            padding: 5px;
+            width: calc(100% - 10px);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above the text */
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        #coordinates {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ball Launcher Simulator</h1>
+        <div class="tooltip">
+            <label for="startingAngle">Starting Angle (degrees):</label>
+            <input type="number" id="startingAngle" value="0">
+            <span class="tooltiptext">The angle at which the arm starts.</span>
+        </div><br>
+        <div class="tooltip">
+            <label for="motorTorque">Motor Torque (NM):</label>
+            <input type="number" id="motorTorque" value="2">
+            <span class="tooltiptext">The torque applied by the motor.</span>
+        </div><br>
+        <div class="tooltip">
+            <label for="ballReleaseAngle">Ball Release Angle (degrees):</label>
+            <input type="number" id="ballReleaseAngle" value="45">
+            <span class="tooltiptext">The angle at which the ball is released.</span>
+        </div><br>
+        <div class="tooltip">
+            <label for="ballWeight">Ball Weight (kg):</label>
+            <input type="number" id="ballWeight" value="1">
+            <span class="tooltiptext">The weight of the ball.</span>
+        </div><br>
+        <label for="simulationSpeed">Simulation Speed:</label>
+        <input type="range" id="simulationSpeed" min="1" max="10" value="5" oninput="updateSpeedLabel(this.value)">
+        <span id="speedLabel">5</span><br>
+        <button onclick="simulate()">Simulate</button>
+        <button onclick="resetSimulation()">Reset</button>
+        <p id="distanceOutput"></p>
+        <p id="errorOutput" style="color: red;"></p>
+        <canvas id="simulationCanvas"></canvas>
+        <p id="coordinates"></p>
+    </div>
+
+    <script>
+        async function simulate() {
+            const startingAngle = parseFloat(document.getElementById('startingAngle').value);
+            const motorTorque = parseFloat(document.getElementById('motorTorque').value);
+            const ballReleaseAngle = parseFloat(document.getElementById('ballReleaseAngle').value);
+            const ballWeight = parseFloat(document.getElementById('ballWeight').value);
+
+            try {
+                const response = await fetch('http://localhost:5293/BallLauncher/calculateLaunchDistance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ startingAngle, motorTorque, ballReleaseAngle, ballWeight })
+                });
+
+                const output = document.getElementById('distanceOutput');
+                const errorOutput = document.getElementById('errorOutput');
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    errorOutput.innerText = errorText;
+                    output.innerText = '';
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const data = await response.json();
+                const distance = data.distance;
+                output.innerText = `Launch Distance: ${distance.toFixed(2)} meters`;
+                errorOutput.innerText = '';
+                resizeCanvas(distance, calculateMaxHeight(distance, ballReleaseAngle));
+                drawSimulation(distance, startingAngle, ballReleaseAngle);
+            } catch (error) {
+                console.error('There has been a problem with your fetch operation:', error);
+            }
+        }
+
+        function updateSpeedLabel(value) {
+            document.getElementById('speedLabel').innerText = value;
+        }
+
+        function resetSimulation() {
+            document.getElementById('startingAngle').value = 0;
+            document.getElementById('motorTorque').value = 2;
+            document.getElementById('ballReleaseAngle').value = 45;
+            document.getElementById('ballWeight').value = 1;
+            document.getElementById('distanceOutput').innerText = '';
+            document.getElementById('errorOutput').innerText = '';
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.width = 600; // Reset canvas width
+            canvas.height = 400; // Reset canvas height
+        }
+
+        function resizeCanvas(distance, maxHeight) {
+            const canvas = document.getElementById('simulationCanvas');
+            const additionalSpace = 25; // Additional space to ensure the trajectory fits within the canvas
+
+            // Calculate the required canvas width and height
+            const requiredWidth = distance + additionalSpace;
+            const requiredHeight = maxHeight + additionalSpace;
+
+            // Set canvas width and height dynamically based on required values
+            canvas.width = requiredWidth * 10; // Scaling to ensure better visualization
+            canvas.height = requiredHeight * 10; // Scaling to ensure better visualization
+        }
+
+        function calculateMaxHeight(distance, angle) {
+            const radians = angle * (Math.PI / 180);
+            const velocity = Math.sqrt(distance * 9.8 / Math.sin(2 * radians));
+            const velocityY = velocity * Math.sin(radians);
+            return (Math.pow(velocityY, 2) / (2 * 9.8)); // Max height formula
+        }
+
+        function drawSimulation(distance, startingAngle, ballReleaseAngle) {
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate the arm end coordinates
+            const armLength = 100;
+            const centerX = 100; // Adjusted for larger canvas
+            const centerY = canvas.height - 100; // Adjusted for larger canvas
+            const armEndX = centerX + armLength * Math.cos(startingAngle * (Math.PI / 180));
+            const armEndY = centerY - armLength * Math.sin(startingAngle * (Math.PI / 180));
+
+            // Draw grid with scale starting from the arm end point
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.font = '10px Arial';
+            ctx.fillStyle = '#000000';
+            const scaleFactor = 10; // Scaling factor for the grid
+
+            // Draw vertical grid lines and labels
+            for (let x = armEndX; x <= canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+                ctx.fillText(`${((x - armEndX) / scaleFactor).toFixed(1)}m`, x, canvas.height - 5); // Adding scale to the grid
+            }
+            for (let x = armEndX; x >= 0; x -= 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+                if (x != armEndX) ctx.fillText(`${((x - armEndX) / scaleFactor).toFixed(1)}m`, x, canvas.height - 5); // Adding scale to the grid
+            }
+
+            // Draw horizontal grid lines and labels
+            for (let y = centerY; y >= 0; y -= 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+                ctx.fillText(`${((centerY - y) / scaleFactor).toFixed(1)}m`, 5, y + 10); // Adding scale to the grid
+            }
+            for (let y = centerY; y <= canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+                if (y != centerY) ctx.fillText(`${((centerY - y) / scaleFactor).toFixed(1)}m`, 5, y + 10); // Adding scale to the grid
+            }
+
+            // Draw the arm
+            ctx.strokeStyle = '#000000'; // Black color for the arm
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(armEndX, armEndY);
+            ctx.stroke();
+
+            // Draw the ball's trajectory
+            ctx.strokeStyle = '#FF0000'; // Red color for the trajectory
+            ctx.beginPath();
+            const steps = 100; // More steps for a smoother trajectory
+            const angle = ballReleaseAngle * (Math.PI / 180);
+            const velocity = Math.sqrt(distance * 9.8 / Math.sin(2 * angle));
+            const velocityX = velocity * Math.cos(angle);
+            const velocityY = velocity * Math.sin(angle);
+            const speed = document.getElementById('simulationSpeed').value;
+
+            let i = 0;
+            let trajectoryPoints = [];
+
+            function drawStep() {
+                if (i > steps) return;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Redraw the grid
+                ctx.strokeStyle = '#e0e0e0';
+                for (let x = armEndX; x <= canvas.width; x += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                    ctx.fillText(`${((x - armEndX) / scaleFactor).toFixed(1)}m`, x, canvas.height - 5); // Adding scale to the grid
+                }
+                for (let x = armEndX; x >= 0; x -= 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                    if (x != armEndX) ctx.fillText(`${((x - armEndX) / scaleFactor).toFixed(1)}m`, x, canvas.height - 5); // Adding scale to the grid
+                }
+                for (let y = centerY; y >= 0; y -= 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                    ctx.fillText(`${((centerY - y) / scaleFactor).toFixed(1)}m`, 5, y + 10); // Adding scale to the grid
+                }
+                for (let y = centerY; y <= canvas.height; y += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                    if (y != centerY) ctx.fillText(`${((centerY - y) / scaleFactor).toFixed(1)}m`, 5, y + 10); // Adding scale to the grid
+                }
+
+                // Redraw the arm
+                ctx.strokeStyle = '#000000';
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(armEndX, armEndY);
+                ctx.stroke();
+
+                // Draw trajectory up to current step
+                ctx.strokeStyle = '#FF0000';
+                ctx.beginPath();
+                for (let j = 0; j <= i; j++) {
+                    const t = j / steps * 2 * velocityY / 9.8;
+                    const x = armEndX + velocityX * t * scaleFactor;
+                    const y = armEndY - (velocityY * t - 0.5 * 9.8 * Math.pow(t, 2)) * scaleFactor;
+                    trajectoryPoints.push({ x, y });
+
+                    if (j === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+
+                // Draw the ball
+                const t = i / steps * 2 * velocityY / 9.8;
+                const ballX = armEndX + velocityX * t * scaleFactor;
+                const ballY = armEndY - (velocityY * t - 0.5 * 9.8 * Math.pow(t, 2)) * scaleFactor;
+                ctx.beginPath();
+                ctx.arc(ballX, ballY, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = '#FF0000';
+                ctx.fill();
+
+                i++;
+                setTimeout(drawStep, 100 / speed);
+            }
+            drawStep();
+
+            canvas.addEventListener('mousemove', function(event) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                const radius = 5;
+
+                for (let i = 0; i < trajectoryPoints.length; i++) {
+                    const point = trajectoryPoints[i];
+                    if (Math.sqrt((mouseX - point.x) ** 2 + (mouseY - point.y) ** 2) < radius) {
+                        document.getElementById('coordinates').innerText = `X: ${(point.x - armEndX) / scaleFactor}m, Y: ${(centerY - point.y) / scaleFactor}m`;
+                        return;
+                    } else {
+                        document.getElementById('coordinates').innerText = '';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
