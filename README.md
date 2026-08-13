@@ -17,6 +17,20 @@ The simulator accepts launch parameters, calculates launch distance and maximum 
 - Automated build and regression testing with GitHub Actions
 - Headless Chrome E2E execution in CI
 
+## Demo
+
+### Ball Launcher Simulation
+
+The browser interface sends launch parameters to the ASP.NET Core API and visualizes the calculated trajectory using HTML Canvas.
+
+![Interactive Ball Launcher simulation](docs/images/ball-launcher-simulation.png)
+
+### Cypress End-to-End Testing
+
+The Cypress suite exercises the browser interface against the real ASP.NET Core backend and validates simulation behavior, input validation, reset functionality, boundary conditions, and UI interactions.
+
+![Cypress end-to-end tests passing](docs/images/cypress-e2e-tests.png)
+
 ## Architecture
 
 ```mermaid
