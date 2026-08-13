@@ -29,7 +29,6 @@ BallLauncherBackend/
    |_ obj/
    |_ BallLauncherSimulatorTests.cs
    |_ BallLauncherTests.csproj
-   |_ UnitTest1.cs
 
 BallLauncherFrontend/
 |_ index.html
