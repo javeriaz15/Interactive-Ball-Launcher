@@ -8,4 +8,5 @@ module.exports = defineConfig({
     slowTestThreshold: 5000,
   },
   video: false,
+  allowCypressEnv: false,
 });
