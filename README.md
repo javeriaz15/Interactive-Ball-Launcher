@@ -1,152 +1,325 @@
-Ball Launcher Simulator
+# Interactive Ball Launcher Simulator
 
-Project Description
-The Ball Launcher Simulator allows users to input various parameters such as the starting angle, motor torque, ball release angle, and ball weight to simulate the launch of a ball. The simulation provides the launch distance and visualizes the trajectory of the ball.
+[![CI](https://github.com/javeriaz15/Interactive-Ball-Launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/javeriaz15/Interactive-Ball-Launcher/actions/workflows/ci.yml)
 
-Technologies Used
-- .NET Core for the backend API
-- JavaScript, HTML, and CSS for the frontend
-- Cypress for end-to-end testing
-- xUnit for backend unit testing
+A browser-based ball-launch simulation application built with an **ASP.NET Core Web API**, **JavaScript**, **HTML Canvas**, and automated testing with **Cypress** and **xUnit**.
 
-Project Structure
-BallLauncherBackend/
-|_ Controllers/
-|  |_ BallLauncherController.cs
-|_ Properties/
-|_ bin/
-|_ obj/
-|_ appsettings.Development.json
-|_ appsettings.json
-|_ BallLauncherApi.csproj
-|_ BallLauncherApi.http
-|_ BallLauncherApi.sln
-|_ BallLauncherSimulator.cs
-|_ Program.cs
-|
-|_ BallLauncherTests/
-   |_ bin/
-   |_ obj/
-   |_ BallLauncherSimulatorTests.cs
-   |_ BallLauncherTests.csproj
+The simulator accepts launch parameters, calculates launch distance and maximum height through the backend API, and visualizes the resulting trajectory in the browser.
 
-BallLauncherFrontend/
-|_ index.html
-|_ cypress/
-   |_ e2e/
-      |_ test_ball_launcher_spec.cy.js
-   |_ fixtures/
-   |_ integration/
-      |_ test_ball_launcher_spec.js
-   |_ support/
+## Highlights
 
-Purpose of Key Files
-1- BallLauncherBackend/BallLauncherApi.csproj: 
-The project file for the backend API, managing dependencies and configurations for the project.
+- ASP.NET Core REST API for launch calculations
+- Interactive browser UI built with vanilla JavaScript, HTML, and CSS
+- HTML Canvas trajectory visualization and animation
+- Input validation and API error handling
+- Cypress end-to-end browser automation
+- xUnit backend unit and controller tests
+- Automated build and regression testing with GitHub Actions
+- Headless Chrome E2E execution in CI
 
-2- BallLauncherBackend/BallLauncherSimulator.cs: 
-Contains the core logic for calculating the ball's trajectory based on the input parameters.
+## Architecture
 
-3- BallLauncherBackend/BallLauncherTests.csproj: 
-The project file for the backend tests, managing dependencies and configurations for the test project.
+```mermaid
+flowchart LR
+    User[Browser User] --> UI[HTML / CSS / JavaScript UI]
+    UI -->|POST launch parameters| API[ASP.NET Core Web API]
+    API --> Simulator[BallLauncherSimulator]
+    Simulator --> API
+    API -->|distance + maxHeight| UI
+    UI --> Canvas[HTML Canvas Visualization]
 
-4- BallLauncherBackend/Controllers/BallLauncherController.cs: 
-The API controller handling POST requests to calculate the launch distance and validating input parameters. Returns error messages for invalid inputs.
+    XUnit[xUnit Tests] --> API
+    Cypress[Cypress E2E Tests] --> UI
+    CI[GitHub Actions CI] --> XUnit
+    CI --> Cypress
+```
 
-5- BallLauncherFrontend/index.html: 
-The main frontend file for the Ball Launcher Simulator, containing the UI elements and JavaScript code for interacting with the backend. It visualizes the trajectory of a launched ball based on user inputs. The simulation dynamically adjusts the canvas size and includes an animation influenced by a user-controlled simulation speed. Users can also hover over the trajectory to view the x and y coordinates of the ball at various points.
+## Technology Stack
 
-6- BallLauncherFrontend/cypress/e2e/test_ball_launcher_spec.cy.js: 
-Contains Cypress end-to-end tests for the frontend application, validating the simulation functionality, error handling, and reset functionality.
+| Area | Technology |
+|---|---|
+| Backend | C# · ASP.NET Core · .NET 8 |
+| Frontend | JavaScript · HTML · CSS |
+| Visualization | HTML Canvas |
+| API | REST / JSON |
+| Backend Testing | xUnit |
+| E2E Testing | Cypress 15 |
+| Browser Automation | Chrome / Cypress |
+| CI | GitHub Actions |
 
-Setup and Running the Simulator
-Prerequisites
-- .NET SDK
-- Node.js and npm
-- Cypress
-- Visual Studio Code (option to view codes in an Editor)
+## Project Structure
 
+```text
+Interactive-Ball-Launcher/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── BallLauncherBackend/
+│   ├── Controllers/
+│   │   └── BallLauncherController.cs
+│   ├── BallLauncherTests/
+│   │   ├── BallLauncherControllerTests.cs
+│   │   ├── BallLauncherSimulatorTests.cs
+│   │   └── BallLauncherTests.csproj
+│   ├── Properties/
+│   ├── BallLauncherApi.csproj
+│   ├── BallLauncherApi.sln
+│   ├── BallLauncherSimulator.cs
+│   ├── Program.cs
+│   └── appsettings.json
+│
+├── BallLauncherFrontend/
+│   ├── cypress/
+│   │   ├── e2e/
+│   │   │   └── test_ball_launcher_spec.cy.js
+│   │   └── support/
+│   │       └── e2e.js
+│   ├── cypress.config.js
+│   ├── index.html
+│   ├── package.json
+│   └── package-lock.json
+│
+├── .gitignore
+└── README.md
+```
 
-Installing Dependencies
-.NET SDK: Download and install the .NET SDK from the official .NET download page (https://dotnet.microsoft.com/en-us/download).
-Node.js and npm: Download and install Node.js (which includes npm) from the official Node.js download page (https://nodejs.org/en).
-Cypress: Cypress can be installed using npm. The command is provided in the frontend setup section.
+## Application Flow
 
-*Backend Setup*
-1. Navigate to the Backend Directory:
-cd BallLauncherBackend
+The user enters:
 
-2. Restore Dependencies:
-dotnet restore
+- Starting angle
+- Motor torque
+- Ball release angle
+- Ball weight
+- Simulation speed
 
-3. Build the Project:
-dotnet build
+When **Simulate** is selected, the frontend sends the launch parameters to:
 
-4. Run Unit Tests:
-dotnet test BallLauncherApi.sln
-Note: The unit tests for the backend are written using xUnit and cover various scenarios for the BallLauncherSimulator, such as valid inputs returning correct values and invalid ball weights returning zero.
+```http
+POST /BallLauncher/calculateLaunchDistance
+```
 
-5. Run and Start the Backend Server:
-dotnet run
-Note: The backend server will start at http://localhost:5293.
+The ASP.NET Core API validates the parameters, performs the launch calculation, and returns values including:
 
-Note: 
-If you run into any error, please delete the bin and obj files in the BallLauncherBackend folder and BalLauncherTests folder. And retry from step 1. 
+```json
+{
+  "distance": 40.816327,
+  "maxHeight": 10.204082
+}
+```
 
-*Frontend Setup*
-1. Navigate to the Frontend Directory:
+The frontend then displays the launch distance and animates the trajectory using HTML Canvas.
+
+## Automated Testing
+
+The repository contains automated tests at both the backend and browser levels.
+
+### Backend — xUnit
+
+The backend test suite covers:
+
+- Expected calculation results for valid inputs
+- Invalid ball weight
+- Invalid motor torque
+- Release-angle boundaries
+- Controller success responses
+- Controller `400 Bad Request` behavior
+
+The current backend suite executes **12 test cases**.
+
+Run it with:
+
+```bash
+dotnet test ./BallLauncherBackend/BallLauncherTests/BallLauncherTests.csproj
+```
+
+### Frontend — Cypress
+
+The Cypress E2E suite runs against the real frontend and ASP.NET Core API rather than replacing the API with mocked responses.
+
+Coverage includes:
+
+- Successful launch simulation
+- API response validation
+- Invalid motor torque
+- Reset behavior
+- Small positive values
+- Larger valid values
+- Fractional values
+- Release-angle boundaries
+- Simulation-speed UI behavior
+
+The current E2E suite contains **8 tests**.
+
+Run it with:
+
+```bash
 cd BallLauncherFrontend
+npm run test:e2e
+```
 
-2. Install Dependencies
-npm install 
+> The frontend and backend servers must both be running when executing the local E2E suite.
 
-3. Serve the Frontend:
-npx serve
+## Continuous Integration
 
-Note: The frontend will be available at http://localhost:3000
+GitHub Actions automatically validates the application on pushes and pull requests to `main`.
 
-4. UI:
-Copy and paste http://localhost:3000 on a browser, to view and manually test the UI. 
+The CI workflow:
 
-Frontend Features
-Simulation Speed: Adjust the speed of the simulation using the range slider labeled "Simulation Speed".
-Simulate Button: Starts the simulation based on the provided input parameters.
-Reset Button: Resets all input fields to their default values and clears the simulation canvas.
+1. Checks out the repository
+2. Configures .NET 8
+3. Restores backend dependencies
+4. Builds the ASP.NET Core application
+5. Runs the xUnit backend tests
+6. Configures Node.js
+7. Installs frontend dependencies
+8. Starts the backend API
+9. Starts the frontend server
+10. Launches Chrome in headless mode
+11. Runs the Cypress E2E regression suite
 
-Error Handling in Frontend
-If invalid input parameters are provided (e.g., negative angles, zero motor torque), the frontend should display an error message indicating "Invalid input parameters."
+This ensures both backend tests and browser-level application behavior are validated automatically.
 
-Frontend Testing Examples
-These are some testing examples for the frontend simulation:
+## Running Locally
 
-Example 1: Starting Angle: 30 degrees, Motor Torque: 1.5 NM, Ball Release Angle: 45 degrees, Ball Weight: 0.5 kg
+### Prerequisites
 
-Example 2: Starting Angle: 45 degrees, Motor Torque: 2.0 NM, Ball Release Angle: 60 degrees, Ball Weight: 1.0 kg
+Install:
 
-Example 3: Starting Angle: 60 degrees, Motor Torque: 1.0 NM, Ball Release Angle: 30 degrees, Ball Weight: 1.5 kg
+- .NET 8 SDK
+- Node.js
+- npm
+- Python 3 for serving the static frontend
+- Google Chrome for local Cypress Chrome runs
 
+Clone the repository:
 
-*Running the Application*
-1. Start Backend Server:
-dotnet run
+```bash
+git clone https://github.com/javeriaz15/Interactive-Ball-Launcher.git
+cd Interactive-Ball-Launcher
+```
 
-2. Start Frontend Server:
-npx serve
+### 1. Start the backend
 
-*Running Cypress Tests*
-1. Open Cypress:
-Navigate to frontend folder 'BallLauncherFrontend', open command prompt, and then open Cypress
-npx cypress open
+From the repository root:
 
-2. Run the Tests:
-In the Cypress UI, go for E2E testing using "Google Chrome". Select the test file test_ball_launcher_spec.cy.js located in the cypress/e2e directory and run it. This will execute the tests to verify the functionality of the frontend simulation.
+```bash
+dotnet restore ./BallLauncherBackend/BallLauncherApi.sln
+dotnet run --project ./BallLauncherBackend/BallLauncherApi.csproj
+```
 
-Screen Recording
-A short screen recording demonstrating the simulator and tests can be found here: https://drive.google.com/file/d/1bv_NnqEDVXCLBi6Cq64Nj8CJk7bQXvin/view?usp=sharing
+The API runs locally on:
 
-Future Improvements
-1- Upgrade the current 2D canvas simulation to a 3D simulation using WebGL or Three.js. 
-2- Expand the unit tests to cover more edge cases and potential failure points.
-3- Simulate additional real-world factors such as air resistance, spin, and variable gravitational effects.
-4- Add dynamic charts and graphs to visualize parameters like velocity, acceleration, and trajectory in real-time.
-5- Add user authentication to save simulation settings and results. 
+```text
+http://localhost:5293
+```
+
+### 2. Install frontend dependencies
+
+In a second terminal:
+
+```bash
+cd BallLauncherFrontend
+npm install
+```
+
+### 3. Start the frontend
+
+On Windows:
+
+```bash
+py -m http.server 3000
+```
+
+On macOS/Linux:
+
+```bash
+python3 -m http.server 3000
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+### 4. Run Cypress
+
+With both servers still running:
+
+```bash
+cd BallLauncherFrontend
+npm run test:e2e
+```
+
+For interactive Cypress mode:
+
+```bash
+npm run cy:open
+```
+
+## CI vs. Local Testing
+
+The local workflow and CI exercise the same application layers:
+
+```text
+Browser
+   ↓
+JavaScript frontend
+   ↓
+ASP.NET Core REST API
+   ↓
+BallLauncherSimulator
+```
+
+GitHub Actions additionally provisions the environment automatically and executes the Cypress suite using headless Chrome.
+
+## Current Simulation Limitations
+
+This project is a software simulation rather than a complete physical model.
+
+The current implementation has several known limitations:
+
+- The backend launch calculation is primarily driven by the ball release angle and configured motor speed.
+- Motor torque and ball weight participate in intermediate calculations but currently cancel mathematically in the resulting launch velocity.
+- Starting angle influences the browser visualization but is not currently incorporated into the backend launch-distance calculation.
+- Air resistance, spin, aerodynamic drag, and environmental effects are not modeled.
+
+These limitations are intentionally documented rather than hidden behind tests that imply greater physical accuracy.
+
+## Modernization Work
+
+The original simulator functionality has been preserved while the repository has been incrementally improved for software-engineering and QA quality.
+
+Modernization work includes:
+
+- Removing generated and obsolete repository files
+- Separating production and test project dependencies
+- Expanding xUnit backend and controller coverage
+- Improving Cypress assertions and synchronization
+- Removing fixed test delays and duplicate E2E scenarios
+- Migrating Cypress to the current major version
+- Resolving npm dependency vulnerabilities
+- Removing obsolete Cypress scaffolding
+- Adding GitHub Actions continuous integration
+- Running browser-level regression tests automatically in headless Chrome
+
+## Future Improvements
+
+Potential extensions include:
+
+- Improve the physics model so torque, weight, and starting angle materially affect the launch calculation
+- Add air resistance and ball spin
+- Add additional API integration tests
+- Add dynamic velocity and acceleration visualization
+- Expand the Canvas visualization or migrate to WebGL / Three.js
+- Package the application for easier deployment
+- Add an optional hosted demonstration environment
+
+## Author
+
+**Juwairiah Zia**
+
+Computer Vision & Applied AI Engineer with experience across software engineering, AI/ML systems, testing, APIs, cloud applications, and production-oriented technical delivery.
