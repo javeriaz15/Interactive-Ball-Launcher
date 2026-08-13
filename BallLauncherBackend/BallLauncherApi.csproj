@@ -6,16 +6,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+
+    <!-- Exclude the nested test project and all of its generated files
+         from the production API project. -->
+    <DefaultItemExcludesInProjectFolder>
+      $(DefaultItemExcludesInProjectFolder);BallLauncherTests/**
+    </DefaultItemExcludesInProjectFolder>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-  </ItemGroup>
-
-  <!-- Tests live inside the backend directory but belong to the separate test project. -->
-  <ItemGroup>
-    <Compile Remove="BallLauncherTests/**/*.cs" />
   </ItemGroup>
 
 </Project>
