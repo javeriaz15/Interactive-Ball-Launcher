@@ -1,8 +1,8 @@
 {
-  "name": "balllauncherfrontend",
+  "name": "ball-launcher-frontend",
   "version": "1.0.0",
-  "description": "Frontend for Ball Launcher Simulator",
-  "main": "index.js",
+  "private": true,
+  "description": "Frontend for the Interactive Ball Launcher Simulator",
   "scripts": {
     "test": "npm run test:e2e",
     "test:e2e": "cypress run --browser chrome",
@@ -10,12 +10,12 @@
     "cy:run": "cypress run"
   },
   "keywords": [
-    "ball",
-    "launcher",
-    "simulator"
+    "ball-launcher",
+    "simulation",
+    "cypress",
+    "testing"
   ],
-  "author": "Your Name",
-  "license": "ISC",
+  "author": "Juwairiah Zia",
   "devDependencies": {
     "cypress": "^15.20.1"
   }
