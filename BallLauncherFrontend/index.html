@@ -3,357 +3,1666 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Ball Launcher Simulator</title>
+
     <style>
+        :root {
+            --background: #f3f6fa;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --border: #dbe3ec;
+            --text: #172033;
+            --muted: #667085;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #c62828;
+            --danger-background: #fff1f1;
+            --success: #18864b;
+            --trajectory: #ef4444;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 0;
-            padding: 20px;
+            min-height: 100vh;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            background:
+                radial-gradient(circle at top left, #e8f0ff 0, transparent 30%),
+                var(--background);
+            color: var(--text);
         }
-        .container {
-            max-width: 800px; /* Increased the width */
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        canvas {
-            border: 1px solid black;
-            margin-top: 10px;
-        }
-        #distanceOutput, #errorOutput {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
+
+        button,
         input {
+            font: inherit;
+        }
+
+        .page-shell {
+            width: min(1240px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 36px 0 48px;
+        }
+
+        .app-header {
+            margin-bottom: 24px;
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 3rem);
+            line-height: 1.05;
+            letter-spacing: -0.035em;
+        }
+
+        .subtitle {
+            max-width: 720px;
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.65;
+        }
+
+        .simulator-layout {
+            display: grid;
+            grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .controls-panel {
+            padding: 24px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .results-panel {
+            padding: 24px;
+            min-width: 0;
+        }
+
+        .panel-heading {
+            margin-bottom: 20px;
+        }
+
+        .panel-heading h2 {
+            margin: 0;
+            font-size: 1.12rem;
+        }
+
+        .panel-heading p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .field-group {
+            display: grid;
+            gap: 7px;
+            margin-bottom: 17px;
+        }
+
+        .field-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 650;
+        }
+
+        .unit {
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--text);
+            outline: none;
+            transition:
+                border-color 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
+        }
+
+        .helper-text {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .speed-section {
+            margin-top: 22px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .speed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 10px;
-            padding: 5px;
-            width: calc(100% - 10px);
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            margin-top: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #555;
-            color: #fff;
+
+        .speed-value {
+            min-width: 42px;
+            padding: 4px 9px;
+            border-radius: 999px;
             text-align: center;
-            border-radius: 5px;
-            padding: 5px 0;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%; /* Position the tooltip above the text */
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: #eef4ff;
         }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--primary);
         }
+
+        .speed-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        button {
+            min-height: 44px;
+            border: 0;
+            border-radius: 10px;
+            padding: 0 18px;
+            cursor: pointer;
+            font-weight: 700;
+            transition:
+                background-color 0.15s ease,
+                transform 0.15s ease,
+                opacity 0.15s ease;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        .primary-button {
+            color: #fff;
+            background: var(--primary);
+        }
+
+        .primary-button:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+
+        .secondary-button {
+            color: var(--text);
+            background: #edf1f6;
+        }
+
+        .secondary-button:hover {
+            background: #e2e8f0;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 17px;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+
+        .status-dot.active {
+            background: var(--primary);
+        }
+
+        .status-dot.complete {
+            background: var(--success);
+        }
+
+        .error-output {
+            margin: 16px 0 0;
+            padding: 11px 12px;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            color: var(--danger);
+            background: var(--danger-background);
+            font-size: 0.86rem;
+            font-weight: 650;
+        }
+
+        .error-output:empty {
+            display: none;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .metric {
+            padding: 16px 18px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface-soft);
+        }
+
+        .metric-label {
+            margin: 0 0 7px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 650;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .metric-value {
+            min-height: 29px;
+            margin: 0;
+            font-size: clamp(1.08rem, 2vw, 1.35rem);
+            font-weight: 750;
+            line-height: 1.3;
+        }
+
+        .metric-value:empty::before {
+            content: "--";
+            color: #94a3b8;
+        }
+
+        .canvas-card {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .canvas-toolbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            margin: 0 2px 12px;
+        }
+
+        .canvas-toolbar strong {
+            font-size: 0.88rem;
+        }
+
+        .canvas-toolbar span {
+            color: var(--muted);
+            font-size: 0.76rem;
+        }
+
+        .canvas-wrapper {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #fbfcfe;
+        }
+
+        #simulationCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 760 / 440;
+        }
+
         #coordinates {
-            margin-top: 10px;
-            font-weight: bold;
+            min-height: 20px;
+            margin: 10px 2px 0;
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.75rem;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-line {
+            width: 18px;
+            height: 2px;
+            background: var(--trajectory);
+        }
+
+        .legend-arm {
+            width: 18px;
+            height: 2px;
+            background: #475569;
+        }
+
+        @media (max-width: 860px) {
+            .page-shell {
+                width: min(100% - 22px, 680px);
+                padding-top: 22px;
+            }
+
+            .simulator-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .controls-panel {
+                position: static;
+            }
+
+            .controls-panel,
+            .results-panel {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .button-row {
+                grid-template-columns: 1fr;
+            }
+
+            .canvas-toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 3px;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Ball Launcher Simulator</h1>
-        <div class="tooltip">
-            <label for="startingAngle">Starting Angle (degrees):</label>
-            <input type="number" id="startingAngle" value="0">
-            <span class="tooltiptext">The angle at which the arm starts.</span>
-        </div><br>
-        <div class="tooltip">
-            <label for="motorTorque">Motor Torque (NM):</label>
-            <input type="number" id="motorTorque" value="2">
-            <span class="tooltiptext">The torque applied by the motor.</span>
-        </div><br>
-        <div class="tooltip">
-            <label for="ballReleaseAngle">Ball Release Angle (degrees):</label>
-            <input type="number" id="ballReleaseAngle" value="45">
-            <span class="tooltiptext">The angle at which the ball is released.</span>
-        </div><br>
-        <div class="tooltip">
-            <label for="ballWeight">Ball Weight (kg):</label>
-            <input type="number" id="ballWeight" value="1">
-            <span class="tooltiptext">The weight of the ball.</span>
-        </div><br>
-        <label for="simulationSpeed">Simulation Speed:</label>
-        <input type="range" id="simulationSpeed" min="1" max="10" value="5" oninput="updateSpeedLabel(this.value)">
-        <span id="speedLabel">5</span><br>
-        <button onclick="simulate()">Simulate</button>
-        <button onclick="resetSimulation()">Reset</button>
-        <p id="distanceOutput"></p>
-        <p id="errorOutput" style="color: red;"></p>
-        <canvas id="simulationCanvas"></canvas>
-        <p id="coordinates"></p>
-    </div>
+    <main class="page-shell">
+
+        <header class="app-header">
+            <p class="eyebrow">Interactive Physics Simulator</p>
+
+            <h1>Ball Launcher Simulator</h1>
+
+            <p class="subtitle">
+                Configure launch parameters, calculate the trajectory through the
+                ASP.NET Core API, and visualize the resulting motion in the browser.
+            </p>
+        </header>
+
+        <div class="simulator-layout">
+
+            <!-- Controls -->
+            <section class="panel controls-panel">
+
+                <div class="panel-heading">
+                    <h2>Launch Parameters</h2>
+                    <p>
+                        Adjust the launcher configuration and run the simulation.
+                    </p>
+                </div>
+
+                <div class="field-group">
+                    <div class="field-heading">
+                        <label for="startingAngle">Starting Angle</label>
+                        <span class="unit">degrees</span>
+                    </div>
+
+                    <input
+                        type="number"
+                        id="startingAngle"
+                        value="0"
+                        step="0.1"
+                    >
+
+                    <p class="helper-text">
+                        Initial position of the launcher arm.
+                    </p>
+                </div>
+
+                <div class="field-group">
+                    <div class="field-heading">
+                        <label for="motorTorque">Motor Torque</label>
+                        <span class="unit">Nm</span>
+                    </div>
+
+                    <input
+                        type="number"
+                        id="motorTorque"
+                        value="2"
+                        step="0.1"
+                    >
+
+                    <p class="helper-text">
+                        Torque supplied by the launcher motor.
+                    </p>
+                </div>
+
+                <div class="field-group">
+                    <div class="field-heading">
+                        <label for="ballReleaseAngle">Ball Release Angle</label>
+                        <span class="unit">degrees</span>
+                    </div>
+
+                    <input
+                        type="number"
+                        id="ballReleaseAngle"
+                        value="45"
+                        step="0.1"
+                    >
+
+                    <p class="helper-text">
+                        Must be greater than 0° and less than 90°.
+                    </p>
+                </div>
+
+                <div class="field-group">
+                    <div class="field-heading">
+                        <label for="ballWeight">Ball Weight</label>
+                        <span class="unit">kg</span>
+                    </div>
+
+                    <input
+                        type="number"
+                        id="ballWeight"
+                        value="1"
+                        step="0.1"
+                    >
+
+                    <p class="helper-text">
+                        Mass of the ball used in the calculation.
+                    </p>
+                </div>
+
+                <div class="speed-section">
+
+                    <div class="speed-header">
+                        <label for="simulationSpeed">Simulation Speed</label>
+
+                        <span class="speed-value">
+                            <span id="speedLabel">3</span>×
+                        </span>
+                    </div>
+
+                    <input
+                        type="range"
+                        id="simulationSpeed"
+                        min="1"
+                        max="10"
+                        value="3"
+                    >
+
+                    <div class="speed-scale">
+                        <span>Slower</span>
+                        <span>Faster</span>
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button
+                        type="button"
+                        id="simulateButton"
+                        class="primary-button"
+                    >
+                        Simulate
+                    </button>
+
+                    <button
+                        type="button"
+                        id="resetButton"
+                        class="secondary-button"
+                    >
+                        Reset
+                    </button>
+                </div>
+
+                <div class="status-row">
+                    <span id="statusDot" class="status-dot"></span>
+                    <span id="simulationStatus">Ready to simulate</span>
+                </div>
+
+                <p id="errorOutput" class="error-output"></p>
+
+            </section>
+
+
+            <!-- Results -->
+            <section
+                id="resultsPanel"
+                class="panel results-panel"
+            >
+
+                <div class="panel-heading">
+                    <h2>Simulation Results</h2>
+                    <p>
+                        Calculated launch metrics and animated trajectory.
+                    </p>
+                </div>
+
+                <div class="metrics">
+
+                    <div class="metric">
+                        <p class="metric-label">Launch Distance</p>
+
+                        <!-- Keep this exact element for Cypress -->
+                        <p
+                            id="distanceOutput"
+                            class="metric-value"
+                        ></p>
+                    </div>
+
+                    <div class="metric">
+                        <p class="metric-label">Maximum Height</p>
+
+                        <p
+                            id="maxHeightOutput"
+                            class="metric-value"
+                        ></p>
+                    </div>
+
+                </div>
+
+                <div class="canvas-card">
+
+                    <div class="canvas-toolbar">
+                        <strong>Trajectory Visualization</strong>
+                        <span>Hover over the trajectory to inspect coordinates</span>
+                    </div>
+
+                    <div class="canvas-wrapper">
+                        <canvas
+                            id="simulationCanvas"
+                            width="760"
+                            height="440"
+                        ></canvas>
+                    </div>
+
+                    <p id="coordinates"></p>
+
+                    <div class="legend">
+                        <span class="legend-item">
+                            <span class="legend-line"></span>
+                            Ball trajectory
+                        </span>
+
+                        <span class="legend-item">
+                            <span class="legend-arm"></span>
+                            Launcher arm
+                        </span>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
 
     <script>
+        const GRAVITY = 9.8;
+
+        const startingAngleInput =
+            document.getElementById('startingAngle');
+
+        const motorTorqueInput =
+            document.getElementById('motorTorque');
+
+        const releaseAngleInput =
+            document.getElementById('ballReleaseAngle');
+
+        const ballWeightInput =
+            document.getElementById('ballWeight');
+
+        const speedInput =
+            document.getElementById('simulationSpeed');
+
+        const speedLabel =
+            document.getElementById('speedLabel');
+
+        const simulateButton =
+            document.getElementById('simulateButton');
+
+        const resetButton =
+            document.getElementById('resetButton');
+
+        const distanceOutput =
+            document.getElementById('distanceOutput');
+
+        const maxHeightOutput =
+            document.getElementById('maxHeightOutput');
+
+        const errorOutput =
+            document.getElementById('errorOutput');
+
+        const simulationStatus =
+            document.getElementById('simulationStatus');
+
+        const statusDot =
+            document.getElementById('statusDot');
+
+        const resultsPanel =
+            document.getElementById('resultsPanel');
+
+        const coordinatesOutput =
+            document.getElementById('coordinates');
+
+        const canvas =
+            document.getElementById('simulationCanvas');
+
+        const ctx =
+            canvas.getContext('2d');
+
+
+        let animationFrameId = null;
+
+        let currentTrajectoryPoints = [];
+
+
+        function getApiBaseUrl() {
+            const isLocal =
+                window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1';
+
+            return (
+                window.BALL_LAUNCHER_API_URL ||
+                (
+                    isLocal
+                        ? 'http://localhost:5293'
+                        : 'https://interactive-ball-launcher-api.onrender.com'
+                )
+            );
+        }
+
+
+        function updateStatus(message, state = 'idle') {
+            simulationStatus.textContent = message;
+
+            statusDot.className = 'status-dot';
+
+            if (state === 'active') {
+                statusDot.classList.add('active');
+            }
+
+            if (state === 'complete') {
+                statusDot.classList.add('complete');
+            }
+        }
+
+
+        function calculateMaxHeight(distance, angle) {
+            const radians =
+                angle * (Math.PI / 180);
+
+            const sineValue =
+                Math.sin(2 * radians);
+
+            if (sineValue <= 0) {
+                return 0;
+            }
+
+            const velocity =
+                Math.sqrt(
+                    distance * GRAVITY / sineValue
+                );
+
+            const velocityY =
+                velocity * Math.sin(radians);
+
+            return (
+                Math.pow(velocityY, 2) /
+                (2 * GRAVITY)
+            );
+        }
+
+
+        function clearCanvas() {
+            ctx.clearRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+        }
+
+
+        function drawEmptyCanvas() {
+            clearCanvas();
+
+            ctx.fillStyle = '#fbfcfe';
+            ctx.fillRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+
+            const padding = 55;
+
+            for (
+                let x = padding;
+                x <= canvas.width - padding;
+                x += 90
+            ) {
+                ctx.beginPath();
+                ctx.moveTo(x, 30);
+                ctx.lineTo(
+                    x,
+                    canvas.height - 45
+                );
+                ctx.stroke();
+            }
+
+            for (
+                let y = 40;
+                y <= canvas.height - 45;
+                y += 65
+            ) {
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(
+                    canvas.width - 25,
+                    y
+                );
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '15px system-ui';
+            ctx.textAlign = 'center';
+
+            ctx.fillText(
+                'Run a simulation to visualize the trajectory',
+                canvas.width / 2,
+                canvas.height / 2
+            );
+        }
+
+
+        function drawSimulationFrame(
+            progress,
+            distance,
+            maxHeight,
+            startingAngle,
+            ballReleaseAngle
+        ) {
+            clearCanvas();
+
+            const width =
+                canvas.width;
+
+            const height =
+                canvas.height;
+
+            const plot = {
+                left: 65,
+                right: 28,
+                top: 28,
+                bottom: 52
+            };
+
+            ctx.fillStyle = '#fbfcfe';
+            ctx.fillRect(
+                0,
+                0,
+                width,
+                height
+            );
+
+
+            const xMin = -8;
+
+            const xMax =
+                Math.max(
+                    12,
+                    distance * 1.12
+                );
+
+            const yMin = -2;
+
+            const yMax =
+                Math.max(
+                    5,
+                    maxHeight * 1.28
+                );
+
+
+            const mapX = (value) => {
+                const plotWidth =
+                    width -
+                    plot.left -
+                    plot.right;
+
+                return (
+                    plot.left +
+                    (
+                        (value - xMin) /
+                        (xMax - xMin)
+                    ) *
+                    plotWidth
+                );
+            };
+
+
+            const mapY = (value) => {
+                const plotHeight =
+                    height -
+                    plot.top -
+                    plot.bottom;
+
+                return (
+                    plot.top +
+                    (
+                        (yMax - value) /
+                        (yMax - yMin)
+                    ) *
+                    plotHeight
+                );
+            };
+
+
+            /*
+             * Grid
+             */
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+
+            ctx.font =
+                '11px system-ui';
+
+            ctx.fillStyle =
+                '#64748b';
+
+
+            const verticalDivisions = 7;
+
+            for (
+                let i = 0;
+                i <= verticalDivisions;
+                i++
+            ) {
+                const value =
+                    xMin +
+                    (
+                        (xMax - xMin) *
+                        i /
+                        verticalDivisions
+                    );
+
+                const x =
+                    mapX(value);
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    x,
+                    plot.top
+                );
+
+                ctx.lineTo(
+                    x,
+                    height - plot.bottom
+                );
+
+                ctx.stroke();
+
+                ctx.textAlign = 'center';
+
+                ctx.fillText(
+                    `${value.toFixed(0)}m`,
+                    x,
+                    height - 26
+                );
+            }
+
+
+            const horizontalDivisions = 6;
+
+            for (
+                let i = 0;
+                i <= horizontalDivisions;
+                i++
+            ) {
+                const value =
+                    yMin +
+                    (
+                        (yMax - yMin) *
+                        i /
+                        horizontalDivisions
+                    );
+
+                const y =
+                    mapY(value);
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    plot.left,
+                    y
+                );
+
+                ctx.lineTo(
+                    width - plot.right,
+                    y
+                );
+
+                ctx.stroke();
+
+                ctx.textAlign = 'right';
+
+                ctx.fillText(
+                    `${value.toFixed(0)}m`,
+                    plot.left - 8,
+                    y + 4
+                );
+            }
+
+
+            /*
+             * Ground line.
+             */
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.5;
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                plot.left,
+                mapY(0)
+            );
+
+            ctx.lineTo(
+                width - plot.right,
+                mapY(0)
+            );
+
+            ctx.stroke();
+
+
+            /*
+             * Launcher arm.
+             *
+             * Starting angle is still visual only, matching
+             * the current simulator's documented behavior.
+             */
+            const launchX =
+                mapX(0);
+
+            const launchY =
+                mapY(0);
+
+            const visualArmLength = 58;
+
+            const startingRadians =
+                startingAngle *
+                (Math.PI / 180);
+
+            const pivotX =
+                launchX -
+                visualArmLength *
+                Math.cos(startingRadians);
+
+            const pivotY =
+                launchY +
+                visualArmLength *
+                Math.sin(startingRadians);
+
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                pivotX,
+                pivotY
+            );
+
+            ctx.lineTo(
+                launchX,
+                launchY
+            );
+
+            ctx.stroke();
+
+
+            /*
+             * Trajectory physics.
+             */
+            const angle =
+                ballReleaseAngle *
+                (Math.PI / 180);
+
+            const sineValue =
+                Math.sin(2 * angle);
+
+            if (sineValue <= 0) {
+                return;
+            }
+
+            const velocity =
+                Math.sqrt(
+                    distance *
+                    GRAVITY /
+                    sineValue
+                );
+
+            const velocityX =
+                velocity *
+                Math.cos(angle);
+
+            const velocityY =
+                velocity *
+                Math.sin(angle);
+
+            const totalFlightTime =
+                2 *
+                velocityY /
+                GRAVITY;
+
+            const steps = 120;
+
+            const currentStep =
+                Math.max(
+                    1,
+                    Math.floor(
+                        progress *
+                        steps
+                    )
+                );
+
+            currentTrajectoryPoints = [];
+
+
+            /*
+             * Draw trajectory.
+             */
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            ctx.beginPath();
+
+            let currentBallX =
+                launchX;
+
+            let currentBallY =
+                launchY;
+
+
+            for (
+                let i = 0;
+                i <= currentStep;
+                i++
+            ) {
+                const stepProgress =
+                    i / steps;
+
+                const time =
+                    stepProgress *
+                    totalFlightTime;
+
+                const xMeters =
+                    velocityX *
+                    time;
+
+                const yMeters =
+                    velocityY *
+                    time -
+                    0.5 *
+                    GRAVITY *
+                    Math.pow(time, 2);
+
+                const pointX =
+                    mapX(xMeters);
+
+                const pointY =
+                    mapY(yMeters);
+
+                currentTrajectoryPoints.push({
+                    pixelX: pointX,
+                    pixelY: pointY,
+                    xMeters,
+                    yMeters
+                });
+
+                if (i === 0) {
+                    ctx.moveTo(
+                        pointX,
+                        pointY
+                    );
+                } else {
+                    ctx.lineTo(
+                        pointX,
+                        pointY
+                    );
+                }
+
+                currentBallX =
+                    pointX;
+
+                currentBallY =
+                    pointY;
+            }
+
+            ctx.stroke();
+
+
+            /*
+             * Ball.
+             */
+            ctx.beginPath();
+
+            ctx.arc(
+                currentBallX,
+                currentBallY,
+                6,
+                0,
+                2 * Math.PI
+            );
+
+            ctx.fillStyle = '#ef4444';
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+
+        function startAnimation(
+            distance,
+            maxHeight,
+            startingAngle,
+            ballReleaseAngle
+        ) {
+            if (animationFrameId) {
+                cancelAnimationFrame(
+                    animationFrameId
+                );
+            }
+
+            const speed =
+                Number(
+                    speedInput.value
+                );
+
+            /*
+             * Preserves the original approximate timing:
+             *
+             * speed 3 ≈ 3.3 seconds
+             * speed 5 ≈ 2 seconds
+             * speed 10 ≈ 1 second
+             */
+            const duration =
+                10000 /
+                Math.max(speed, 1);
+
+            let startTime = null;
+
+
+            function animate(timestamp) {
+                if (startTime === null) {
+                    startTime = timestamp;
+                }
+
+                const elapsed =
+                    timestamp -
+                    startTime;
+
+                const progress =
+                    Math.min(
+                        elapsed /
+                        duration,
+                        1
+                    );
+
+                drawSimulationFrame(
+                    progress,
+                    distance,
+                    maxHeight,
+                    startingAngle,
+                    ballReleaseAngle
+                );
+
+                if (progress < 1) {
+                    animationFrameId =
+                        requestAnimationFrame(
+                            animate
+                        );
+                } else {
+                    animationFrameId = null;
+
+                    updateStatus(
+                        'Simulation complete',
+                        'complete'
+                    );
+                }
+            }
+
+
+            updateStatus(
+                'Animating trajectory...',
+                'active'
+            );
+
+            animationFrameId =
+                requestAnimationFrame(
+                    animate
+                );
+        }
+
+
         async function simulate() {
-            const startingAngle = parseFloat(document.getElementById('startingAngle').value);
-            const motorTorque = parseFloat(document.getElementById('motorTorque').value);
-            const ballReleaseAngle = parseFloat(document.getElementById('ballReleaseAngle').value);
-            const ballWeight = parseFloat(document.getElementById('ballWeight').value);
+            const startingAngle =
+                parseFloat(
+                    startingAngleInput.value
+                );
+
+            const motorTorque =
+                parseFloat(
+                    motorTorqueInput.value
+                );
+
+            const ballReleaseAngle =
+                parseFloat(
+                    releaseAngleInput.value
+                );
+
+            const ballWeight =
+                parseFloat(
+                    ballWeightInput.value
+                );
+
+
+            errorOutput.textContent = '';
+
+            simulateButton.disabled = true;
+
+            simulateButton.textContent =
+                'Calculating...';
+
+            updateStatus(
+                'Requesting calculation...',
+                'active'
+            );
+
 
             try {
                 const apiBaseUrl =
-                    window.BALL_LAUNCHER_API_URL || 'http://localhost:5293';
+                    getApiBaseUrl();
 
-                const response = await fetch(
-                    `${apiBaseUrl}/BallLauncher/calculateLaunchDistance`,
-                    {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ startingAngle, motorTorque, ballReleaseAngle, ballWeight })
-                });
+                const response =
+                    await fetch(
+                        `${apiBaseUrl}/BallLauncher/calculateLaunchDistance`,
+                        {
+                            method: 'POST',
 
-                const output = document.getElementById('distanceOutput');
-                const errorOutput = document.getElementById('errorOutput');
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
+                            },
+
+                            body: JSON.stringify({
+                                startingAngle,
+                                motorTorque,
+                                ballReleaseAngle,
+                                ballWeight
+                            })
+                        }
+                    );
+
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    errorOutput.innerText = errorText;
-                    output.innerText = '';
-                    throw new Error('Network response was not ok ' + response.statusText);
+                    const errorText =
+                        await response.text();
+
+                    const cleanedError =
+                        errorText
+                            .replace(/^"/, '')
+                            .replace(/"$/, '');
+
+                    errorOutput.textContent =
+                        cleanedError;
+
+                    distanceOutput.textContent =
+                        '';
+
+                    maxHeightOutput.textContent =
+                        '';
+
+                    updateStatus(
+                        'Input rejected'
+                    );
+
+                    drawEmptyCanvas();
+
+                    return;
                 }
 
-                const data = await response.json();
-                const distance = data.distance;
-                output.innerText = `Launch Distance: ${distance.toFixed(2)} meters`;
-                errorOutput.innerText = '';
-                resizeCanvas(distance, calculateMaxHeight(distance, ballReleaseAngle));
-                drawSimulation(distance, startingAngle, ballReleaseAngle);
+
+                const data =
+                    await response.json();
+
+                const distance =
+                    data.distance;
+
+                const maxHeight =
+                    Number.isFinite(data.maxHeight)
+                        ? data.maxHeight
+                        : calculateMaxHeight(
+                            distance,
+                            ballReleaseAngle
+                        );
+
+
+                /*
+                 * Keep this exact format because it is
+                 * intentionally validated by Cypress.
+                 */
+                distanceOutput.textContent =
+                    `Launch Distance: ${distance.toFixed(2)} meters`;
+
+                maxHeightOutput.textContent =
+                    `${maxHeight.toFixed(2)} meters`;
+
+
+                /*
+                 * On desktop both panels remain visible.
+                 *
+                 * On smaller screens move the user directly
+                 * to the result after submitting.
+                 */
+                if (
+                    window.matchMedia(
+                        '(max-width: 860px)'
+                    ).matches
+                ) {
+                    resultsPanel.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+
+
+                startAnimation(
+                    distance,
+                    maxHeight,
+                    startingAngle,
+                    ballReleaseAngle
+                );
+
             } catch (error) {
-                console.error('There has been a problem with your fetch operation:', error);
+                console.error(
+                    'Simulation request failed:',
+                    error
+                );
+
+                errorOutput.textContent =
+                    'Unable to reach the simulation API. Please try again.';
+
+                distanceOutput.textContent =
+                    '';
+
+                maxHeightOutput.textContent =
+                    '';
+
+                updateStatus(
+                    'API unavailable'
+                );
+
+            } finally {
+                simulateButton.disabled = false;
+
+                simulateButton.textContent =
+                    'Simulate';
             }
         }
 
-        function updateSpeedLabel(value) {
-            document.getElementById('speedLabel').innerText = value;
-        }
 
         function resetSimulation() {
-            document.getElementById('startingAngle').value = 0;
-            document.getElementById('motorTorque').value = 2;
-            document.getElementById('ballReleaseAngle').value = 45;
-            document.getElementById('ballWeight').value = 1;
-            document.getElementById('distanceOutput').innerText = '';
-            document.getElementById('errorOutput').innerText = '';
-            const canvas = document.getElementById('simulationCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.width = 600; // Reset canvas width
-            canvas.height = 400; // Reset canvas height
+            if (animationFrameId) {
+                cancelAnimationFrame(
+                    animationFrameId
+                );
+
+                animationFrameId = null;
+            }
+
+
+            startingAngleInput.value = 0;
+
+            motorTorqueInput.value = 2;
+
+            releaseAngleInput.value = 45;
+
+            ballWeightInput.value = 1;
+
+            /*
+             * Slower default makes the trajectory easier
+             * to observe during a real demo.
+             */
+            speedInput.value = 3;
+
+            speedLabel.textContent = 3;
+
+
+            distanceOutput.textContent = '';
+
+            maxHeightOutput.textContent = '';
+
+            errorOutput.textContent = '';
+
+            coordinatesOutput.textContent = '';
+
+
+            updateStatus(
+                'Ready to simulate'
+            );
+
+            currentTrajectoryPoints = [];
+
+            drawEmptyCanvas();
         }
 
-        function resizeCanvas(distance, maxHeight) {
-            const canvas = document.getElementById('simulationCanvas');
-            const additionalSpace = 25; // Additional space to ensure the trajectory fits within the canvas
 
-            // Calculate the required canvas width and height
-            const requiredWidth = distance + additionalSpace;
-            const requiredHeight = maxHeight + additionalSpace;
-
-            // Set canvas width and height dynamically based on required values
-            canvas.width = requiredWidth * 10; // Scaling to ensure better visualization
-            canvas.height = requiredHeight * 10; // Scaling to ensure better visualization
-        }
-
-        function calculateMaxHeight(distance, angle) {
-            const radians = angle * (Math.PI / 180);
-            const velocity = Math.sqrt(distance * 9.8 / Math.sin(2 * radians));
-            const velocityY = velocity * Math.sin(radians);
-            return (Math.pow(velocityY, 2) / (2 * 9.8)); // Max height formula
-        }
-
-        function drawSimulation(distance, startingAngle, ballReleaseAngle) {
-            const canvas = document.getElementById('simulationCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Calculate the arm end coordinates
-            const armLength = 100;
-            const centerX = 100; // Adjusted for larger canvas
-            const centerY = canvas.height - 100; // Adjusted for larger canvas
-            const armEndX = centerX + armLength * Math.cos(startingAngle * (Math.PI / 180));
-            const armEndY = centerY - armLength * Math.sin(startingAngle * (Math.PI / 180));
-
-            // Draw grid with scale starting from the arm end point
-            ctx.strokeStyle = '#e0e0e0';
-            ctx.font = '10px Arial';
-            ctx.fillStyle = '#000000';
-            const scaleFactor = 10; // Scaling factor for the grid
-
-            // Draw vertical grid lines and labels
-            for (let x = armEndX; x <= canvas.width; x += 50) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-                ctx.fillText(`${((x - armEndX) / scaleFactor).toFixed(1)}m`, x, canvas.height - 5); // Adding scale to the grid
+        speedInput.addEventListener(
+            'input',
+            () => {
+                speedLabel.textContent =
+                    speedInput.value;
             }
-            for (let x = armEndX; x >= 0; x -= 50) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-                if (x != armEndX) ctx.fillText(`${((x - armEndX) / scaleFactor).toFixed(1)}m`, x, canvas.height - 5); // Adding scale to the grid
-            }
+        );
 
-            // Draw horizontal grid lines and labels
-            for (let y = centerY; y >= 0; y -= 50) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-                ctx.fillText(`${((centerY - y) / scaleFactor).toFixed(1)}m`, 5, y + 10); // Adding scale to the grid
-            }
-            for (let y = centerY; y <= canvas.height; y += 50) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-                if (y != centerY) ctx.fillText(`${((centerY - y) / scaleFactor).toFixed(1)}m`, 5, y + 10); // Adding scale to the grid
-            }
 
-            // Draw the arm
-            ctx.strokeStyle = '#000000'; // Black color for the arm
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(armEndX, armEndY);
-            ctx.stroke();
+        simulateButton.addEventListener(
+            'click',
+            simulate
+        );
 
-            // Draw the ball's trajectory
-            ctx.strokeStyle = '#FF0000'; // Red color for the trajectory
-            ctx.beginPath();
-            const steps = 100; // More steps for a smoother trajectory
-            const angle = ballReleaseAngle * (Math.PI / 180);
-            const velocity = Math.sqrt(distance * 9.8 / Math.sin(2 * angle));
-            const velocityX = velocity * Math.cos(angle);
-            const velocityY = velocity * Math.sin(angle);
-            const speed = document.getElementById('simulationSpeed').value;
 
-            let i = 0;
-            let trajectoryPoints = [];
+        resetButton.addEventListener(
+            'click',
+            resetSimulation
+        );
 
-            function drawStep() {
-                if (i > steps) return;
 
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.addEventListener(
+            'mousemove',
+            (event) => {
+                if (
+                    currentTrajectoryPoints.length === 0
+                ) {
+                    coordinatesOutput.textContent =
+                        '';
 
-                // Redraw the grid
-                ctx.strokeStyle = '#e0e0e0';
-                for (let x = armEndX; x <= canvas.width; x += 50) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, canvas.height);
-                    ctx.stroke();
-                    ctx.fillText(`${((x - armEndX) / scaleFactor).toFixed(1)}m`, x, canvas.height - 5); // Adding scale to the grid
-                }
-                for (let x = armEndX; x >= 0; x -= 50) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, canvas.height);
-                    ctx.stroke();
-                    if (x != armEndX) ctx.fillText(`${((x - armEndX) / scaleFactor).toFixed(1)}m`, x, canvas.height - 5); // Adding scale to the grid
-                }
-                for (let y = centerY; y >= 0; y -= 50) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(canvas.width, y);
-                    ctx.stroke();
-                    ctx.fillText(`${((centerY - y) / scaleFactor).toFixed(1)}m`, 5, y + 10); // Adding scale to the grid
-                }
-                for (let y = centerY; y <= canvas.height; y += 50) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(canvas.width, y);
-                    ctx.stroke();
-                    if (y != centerY) ctx.fillText(`${((centerY - y) / scaleFactor).toFixed(1)}m`, 5, y + 10); // Adding scale to the grid
+                    return;
                 }
 
-                // Redraw the arm
-                ctx.strokeStyle = '#000000';
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.lineTo(armEndX, armEndY);
-                ctx.stroke();
 
-                // Draw trajectory up to current step
-                ctx.strokeStyle = '#FF0000';
-                ctx.beginPath();
-                for (let j = 0; j <= i; j++) {
-                    const t = j / steps * 2 * velocityY / 9.8;
-                    const x = armEndX + velocityX * t * scaleFactor;
-                    const y = armEndY - (velocityY * t - 0.5 * 9.8 * Math.pow(t, 2)) * scaleFactor;
-                    trajectoryPoints.push({ x, y });
+                const rect =
+                    canvas.getBoundingClientRect();
 
-                    if (j === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
+                /*
+                 * Convert responsive CSS coordinates back
+                 * into the canvas's internal coordinates.
+                 */
+                const mouseX =
+                    (
+                        event.clientX -
+                        rect.left
+                    ) *
+                    (
+                        canvas.width /
+                        rect.width
+                    );
+
+                const mouseY =
+                    (
+                        event.clientY -
+                        rect.top
+                    ) *
+                    (
+                        canvas.height /
+                        rect.height
+                    );
+
+
+                const threshold = 10;
+
+                let closestPoint = null;
+
+                let closestDistance =
+                    Number.POSITIVE_INFINITY;
+
+
+                for (
+                    const point of
+                    currentTrajectoryPoints
+                ) {
+                    const pointDistance =
+                        Math.hypot(
+                            mouseX -
+                            point.pixelX,
+
+                            mouseY -
+                            point.pixelY
+                        );
+
+                    if (
+                        pointDistance <
+                        closestDistance
+                    ) {
+                        closestDistance =
+                            pointDistance;
+
+                        closestPoint =
+                            point;
                     }
                 }
-                ctx.stroke();
 
-                // Draw the ball
-                const t = i / steps * 2 * velocityY / 9.8;
-                const ballX = armEndX + velocityX * t * scaleFactor;
-                const ballY = armEndY - (velocityY * t - 0.5 * 9.8 * Math.pow(t, 2)) * scaleFactor;
-                ctx.beginPath();
-                ctx.arc(ballX, ballY, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = '#FF0000';
-                ctx.fill();
 
-                i++;
-                setTimeout(drawStep, 100 / speed);
-            }
-            drawStep();
-
-            canvas.addEventListener('mousemove', function(event) {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = event.clientX - rect.left;
-                const mouseY = event.clientY - rect.top;
-                const radius = 5;
-
-                for (let i = 0; i < trajectoryPoints.length; i++) {
-                    const point = trajectoryPoints[i];
-                    if (Math.sqrt((mouseX - point.x) ** 2 + (mouseY - point.y) ** 2) < radius) {
-                        document.getElementById('coordinates').innerText = `X: ${(point.x - armEndX) / scaleFactor}m, Y: ${(centerY - point.y) / scaleFactor}m`;
-                        return;
-                    } else {
-                        document.getElementById('coordinates').innerText = '';
-                    }
+                if (
+                    closestPoint &&
+                    closestDistance <= threshold
+                ) {
+                    coordinatesOutput.textContent =
+                        `X: ${closestPoint.xMeters.toFixed(2)} m · ` +
+                        `Y: ${Math.max(0, closestPoint.yMeters).toFixed(2)} m`;
+                } else {
+                    coordinatesOutput.textContent =
+                        '';
                 }
-            });
-        }
+            }
+        );
+
+
+        canvas.addEventListener(
+            'mouseleave',
+            () => {
+                coordinatesOutput.textContent =
+                    '';
+            }
+        );
+
+
+        /*
+         * Initial visualization.
+         */
+        drawEmptyCanvas();
     </script>
 </body>
 </html>
