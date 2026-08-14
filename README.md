@@ -2,6 +2,9 @@
 
 [![CI](https://github.com/javeriaz15/Interactive-Ball-Launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/javeriaz15/Interactive-Ball-Launcher/actions/workflows/ci.yml)
 
+[**Live Demo →**](https://interactive-ball-launcher.onrender.com)
+> **Note:** The backend runs on Render's free tier and may take up to about a minute to wake after a period of inactivity.
+
 A browser-based ball-launch simulation application built with an **ASP.NET Core Web API**, **JavaScript**, **HTML Canvas**, and automated testing with **Cypress** and **xUnit**.
 
 The simulator accepts launch parameters, calculates launch distance and maximum height through the backend API, and visualizes the resulting trajectory in the browser.
