@@ -12,8 +12,6 @@ WORKDIR /src/BallLauncherBackend
 RUN dotnet publish BallLauncherApi.csproj \
     --configuration Release \
     --output /app/publish \
-    --no-restore
-
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
