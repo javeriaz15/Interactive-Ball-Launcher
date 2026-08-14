@@ -121,7 +121,12 @@
             const ballWeight = parseFloat(document.getElementById('ballWeight').value);
 
             try {
-                const response = await fetch('http://localhost:5293/BallLauncher/calculateLaunchDistance', {
+                const apiBaseUrl =
+                    window.BALL_LAUNCHER_API_URL || 'http://localhost:5293';
+
+                const response = await fetch(
+                    `${apiBaseUrl}/BallLauncher/calculateLaunchDistance`,
+                    {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
