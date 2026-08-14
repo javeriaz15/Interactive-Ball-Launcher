@@ -11,7 +11,8 @@ WORKDIR /src/BallLauncherBackend
 
 RUN dotnet publish BallLauncherApi.csproj \
     --configuration Release \
-    --output /app/publish \
+    --output /app/publish
+
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
