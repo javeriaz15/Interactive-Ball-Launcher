@@ -44,6 +44,47 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Install frontend test dependencies
+        working-directory: BallLauncherFrontend
+        run: npm ci
+
+      - name: Run Cucumber BDD acceptance tests
+        working-directory: BallLauncherFrontend
+        shell: bash
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+        run: |
+          dotnet run \
+            --project ../BallLauncherBackend/BallLauncherApi.csproj \
+            --configuration Release \
+            --no-build \
+            --urls http://127.0.0.1:5293 \
+            > /tmp/bdd-api.log 2>&1 &
+
+          API_PID=$!
+          trap 'kill $API_PID || true' EXIT
+
+          READY=false
+
+          for i in {1..30}; do
+            if curl --fail --silent \
+              http://127.0.0.1:5293/swagger/index.html \
+              > /dev/null; then
+              READY=true
+              break
+            fi
+
+            sleep 1
+          done
+
+          if [ "$READY" != "true" ]; then
+            echo "Backend API did not become ready."
+            cat /tmp/bdd-api.log
+            exit 1
+          fi
+
+          npm run test:bdd
+
       - name: Run Cypress end-to-end tests
         uses: cypress-io/github-action@v7
         with:

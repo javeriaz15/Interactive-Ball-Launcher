@@ -6,9 +6,10 @@
   "scripts": {
     "test": "npm run test:e2e",
     "test:e2e": "cypress run --browser chrome",
+    "test:bdd": "cucumber-js \"features/**/*.feature\" --require \"features/step_definitions/**/*.js\" --format progress",
     "cy:open": "cypress open",
     "cy:run": "cypress run"
-  },
+},
   "keywords": [
     "ball-launcher",
     "simulation",
@@ -17,6 +18,7 @@
   ],
   "author": "Juwairiah Zia",
   "devDependencies": {
+    "@cucumber/cucumber": "^13.2.1",
     "cypress": "^15.20.1"
   }
 }
