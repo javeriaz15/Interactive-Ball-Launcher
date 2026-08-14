@@ -19,7 +19,7 @@ The simulator accepts launch parameters, calculates launch distance and maximum 
 - xUnit backend unit and controller tests
 - Automated build and regression testing with GitHub Actions
 - Headless Chrome E2E execution in CI
-- Cucumber/Gherkin BDD acceptance testing against the live ASP.NET Core API
+- Cucumber/Gherkin BDD acceptance testing against the ASP.NET Core API
 
 ## Demo
 
@@ -39,17 +39,23 @@ The Cypress suite exercises the browser interface against the real ASP.NET Core 
 
 ```mermaid
 flowchart LR
-    User[Browser User] --> UI[HTML / CSS / JavaScript UI]
-    UI -->|POST launch parameters| API[ASP.NET Core Web API]
+    User[Browser User] --> UI[JavaScript / HTML Canvas Frontend]
+    UI -->|REST / JSON| API[ASP.NET Core Web API]
     API --> Simulator[BallLauncherSimulator]
     Simulator --> API
-    API -->|distance + maxHeight| UI
-    UI --> Canvas[HTML Canvas Visualization]
+    API --> UI
 
     XUnit[xUnit Tests] --> API
+    Cucumber[Cucumber / Gherkin BDD] --> API
     Cypress[Cypress E2E Tests] --> UI
+
     CI[GitHub Actions CI] --> XUnit
+    CI --> Cucumber
     CI --> Cypress
+    CI --> Docker[Docker Image Build]
+
+    RenderFrontend[Render Static Site] --> UI
+    RenderAPI[Render Web Service] --> API
 ```
 
 ## Technology Stack
@@ -86,6 +92,7 @@ Interactive-Ball-Launcher/
 │   ├── BallLauncherApi.csproj
 │   ├── BallLauncherApi.sln
 │   ├── BallLauncherSimulator.cs
+│   ├── Dockerfile
 │   ├── Program.cs
 │   └── appsettings.json
 │
@@ -95,11 +102,18 @@ Interactive-Ball-Launcher/
 │   │   │   └── test_ball_launcher_spec.cy.js
 │   │   └── support/
 │   │       └── e2e.js
+├── features/
+│   ├── ball_launch.feature
+│   └── step_definitions/
+│       └── ball_launch_steps.js
 │   ├── cypress.config.js
 │   ├── index.html
 │   ├── package.json
 │   └── package-lock.json
-│
+├── docs/
+│   ├── images/
+│       ├── ball-launcher-simulation.png
+│       └── cypress-e2e-tests.png
 ├── .gitignore
 └── README.md
 ```
@@ -210,8 +224,6 @@ npm run test:e2e
 ## Continuous Integration
 
 GitHub Actions automatically validates the application on pushes and pull requests to `main`.
-
-The CI workflow:
 
 The CI workflow:
 
@@ -363,11 +375,10 @@ Potential extensions include:
 - Add additional API integration tests
 - Add dynamic velocity and acceleration visualization
 - Expand the Canvas visualization or migrate to WebGL / Three.js
-- Package the application for easier deployment
-- Add an optional hosted demonstration environment
+- Add structured application logging and production health monitoring
 
 ## Author
 
 **Juwairiah Zia**
 
-Computer Vision & Applied AI Engineer with experience across software engineering, AI/ML systems, testing, APIs, cloud applications, and production-oriented technical delivery.
+Software & Applied AI Engineer with experience across software engineering, AI/ML systems, testing, APIs, cloud applications, and production-oriented technical delivery.
