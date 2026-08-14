@@ -19,6 +19,7 @@ The simulator accepts launch parameters, calculates launch distance and maximum 
 - xUnit backend unit and controller tests
 - Automated build and regression testing with GitHub Actions
 - Headless Chrome E2E execution in CI
+- Cucumber/Gherkin BDD acceptance testing against the live ASP.NET Core API
 
 ## Demo
 
@@ -63,6 +64,7 @@ flowchart LR
 | E2E Testing | Cypress 15 |
 | Browser Automation | Chrome / Cypress |
 | CI | GitHub Actions |
+| BDD / Acceptance Testing | Cucumber · Gherkin |
 
 ## Project Structure
 
@@ -152,6 +154,32 @@ Run it with:
 dotnet test ./BallLauncherBackend/BallLauncherTests/BallLauncherTests.csproj
 ```
 
+### BDD Acceptance Testing — Cucumber
+
+The repository includes executable BDD acceptance scenarios written in Gherkin and implemented with Cucumber.
+
+The acceptance suite exercises the real ASP.NET Core API and covers:
+
+- Successful launch calculation with valid parameters
+- Rejection of zero motor torque
+- Rejection of a 0° release angle
+- Rejection of a 90° release angle
+- Validation of successful response metrics and API error messages
+
+Current BDD results:
+
+```text
+4 scenarios (4 passed)
+24 steps (24 passed)
+```
+
+Run the BDD suite with the backend running:
+
+```bash
+cd BallLauncherFrontend
+npm run test:bdd
+```
+
 ### Frontend — Cypress
 
 The Cypress E2E suite runs against the real frontend and ASP.NET Core API rather than replacing the API with mocked responses.
@@ -185,17 +213,20 @@ GitHub Actions automatically validates the application on pushes and pull reques
 
 The CI workflow:
 
+The CI workflow:
+
 1. Checks out the repository
 2. Configures .NET 8
 3. Restores backend dependencies
 4. Builds the ASP.NET Core application
 5. Runs the xUnit backend tests
-6. Configures Node.js
-7. Installs frontend dependencies
-8. Starts the backend API
-9. Starts the frontend server
-10. Launches Chrome in headless mode
-11. Runs the Cypress E2E regression suite
+6. Validates the backend Docker image build
+7. Configures Node.js
+8. Installs frontend test dependencies
+9. Runs Cucumber BDD acceptance tests against the API
+10. Starts the backend and frontend services
+11. Launches Chrome in headless mode
+12. Runs the Cypress E2E regression suite
 
 This ensures both backend tests and browser-level application behavior are validated automatically.
 
